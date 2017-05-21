@@ -1,6 +1,5 @@
 package com.teits.pixelmoney;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,7 +20,6 @@ import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.text.Text;
@@ -36,14 +34,18 @@ import com.teits.pixelmoney.exec.ReloadExecutor;
 import com.teits.pixelmoney.exec.ToggleExecutor;
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
 
-@Plugin ( name = "PixelMoney", id = "pixelmoney", version = "1.0", authors = "Teits", dependencies = {@Dependency(id = "pixelmon")})
+@Plugin ( name = PixelMoney.plName, id = "pixelmoney", version = PixelMoney.plVer, authors = PixelMoney.plAuthor, dependencies = {@Dependency(id = "pixelmon")})
 public class PixelMoney {
+	
+	public static final String plName = "PixelMoney";
+	public static final String plVer = "1.0";
+	public static final String plAuthor = "Teits";
+	
 	@Inject
 	Logger logger;
 	
@@ -53,54 +55,61 @@ public class PixelMoney {
 	
 	@Inject
 	@DefaultConfig(sharedRoot = true)
-	public Path filePath = Paths.get(defaultConfig + "/pixelmoney.conf");
+	private Path filePath = Paths.get(defaultConfig + "/pixelmoney.conf");
 	
 	@Inject
 	@DefaultConfig(sharedRoot = true)
-	public ConfigurationLoader<CommentedConfigurationNode> configManager = HoconConfigurationLoader.builder().setPath(filePath).build();
-	
-	public ConfigurationNode confignode;
-	public int money;
-	public boolean levelbased;
-	
-    public static List<UUID> toggle = new ArrayList<>();
+	private ConfigurationLoader<CommentedConfigurationNode> configManager = HoconConfigurationLoader.builder().setPath(filePath).build();
+    
+	private CommentedConfigurationNode configNode;
+	public static List<UUID> toggle = new ArrayList<>();
 	EconomyService economyService;
 	Pixelmon Pixelmon;
+	public EntityPixelmon poke;
+	public ConfigPM config = new ConfigPM();
+	public PixelMoney instance;
+	
+	public ConfigurationLoader<CommentedConfigurationNode> getConfigManager() {
+		return configManager;
+	}
+	public CommentedConfigurationNode getConfigNode() {
+		return configNode;
+	}
 	
 	@Listener
 	public void onServerStart(GameInitializationEvent e){
 		
+		ReloadExecutor.set(this);
+		logger.info(plName + " " + plVer + " by " + plAuthor);
 		
 		if(Files.exists(filePath)) {
-			init();
-			load();
+			logger.info("Loading config file");
+			config.configLoad(config.configInit(configManager, configNode));
 		}
 		else {
-			setup();
-			init();
-			load();
+			logger.info("Creating config file");
+			config.configSetup(filePath, configManager, configNode);
+			logger.info("Loading config file");
+			config.configLoad(config.configInit(configManager, configNode));
 		}
 		
 		Pixelmon.EVENT_BUS.register(this);
 		
-		logger.info("---------------------------");
-		logger.info("|        PixelMoney       |");
-		logger.info("|Initializating the plugin|");
-		logger.info("---------------------------");
+		logger.info("Registering commands");
 		
 		CommandSpec toggle = CommandSpec.builder()
-				.permission("pixelmoney.toggle")
+				.permission("teits.pixelmoney.toggle")
 				.description(Text.of("Toggle the money log messages"))
 				.executor(new ToggleExecutor())
 				.build();
 		CommandSpec reload = CommandSpec.builder()
-				.permission("pixelmoney.reload")
+				.permission("teits.pixelmoney.reload")
 				.description(Text.of("Reload PixelMoney's config"))
 				.executor(new ReloadExecutor())
 				.build();
 		CommandSpec main = CommandSpec.builder()
-				.permission("pixelmoney.reload")
-				.description(Text.of("Reload PixelMoney's config"))
+				.permission("teits.pixelmoney")
+				.description(Text.of("PixelMoney base command"))
 				.child(reload, "reload")
 				.child(toggle, "togglemsg")
 				.build();
@@ -108,33 +117,7 @@ public class PixelMoney {
 		Sponge.getCommandManager().register(this, main, "pixelmoney", "pm");
 		
 		logger.info("Successfully initializated!");
-	}
-	
-	public void init() {
-		try {
-			confignode = configManager.load();
-		}
-		catch (IOException ec){
-			ec.printStackTrace();
-		}
-	}
-	
-	public void setup() {
-		try {
-			Files.createFile(filePath);
-			confignode = configManager.createEmptyNode();
-			confignode.getNode("pixelmoney", "money").setValue(10);
-			confignode.getNode("pixelmoney", "levelbased").setValue(false);
-			configManager.save(confignode);
-		}
-		catch (IOException ec){
-			ec.printStackTrace();
-		}
-		
-	}
-	public void load() {
-			money = confignode.getNode("pixelmoney", "money").getInt();
-			levelbased = confignode.getNode("pixelmoney", "levelbased").getBoolean();
+		logger.info("Thank you for using " + plName);
 	}
 	
 	@Listener
@@ -151,26 +134,17 @@ public class PixelMoney {
 			if (uOpt.isPresent()) {
 			    UniqueAccount acc = uOpt.get();
 			    for (PixelmonWrapper wrapper : event.wpp.controlledPokemon) {
-			    	EntityPixelmon poke = wrapper.pokemon;
-			    	if (levelbased == true) {
-			    		BigDecimal amount = new BigDecimal((poke.getLvl().getLevel()) * money);
-			    		acc.deposit(economyService.getDefaultCurrency(), amount, Cause.source(this).build());
+			    	poke = wrapper.pokemon;
+			    	config.setAmount(poke);
+			    	if(config.setAmount(poke)==null){
+			    		System.out.println("You have a problem in your config file");
+			    	}else{
+			    		acc.deposit(economyService.getDefaultCurrency(), config.amount, Cause.source(this).build());
 		    			if(toggle.contains(p.getUniqueId())) {
-		    				return;
+		    				return ;
+		    			}else{
+		    				p.sendMessage(Text.of(TextColors.GREEN, "[PixelMoney] You've gained $" + config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN) + " for killing a(n) " + poke.getPokemonName() + "!"));
 		    			}
-		    			else {
-		    				p.sendMessage(Text.of(TextColors.GREEN, "[PixelMoney] You've gained $" + amount.setScale(2, BigDecimal.ROUND_HALF_DOWN) + " for kill a(n) " + poke.getPokemonName() + "!"));
-		    			}
-			    	}
-			    	else {
-			    		BigDecimal amount = new BigDecimal(money);
-			    		acc.deposit(economyService.getDefaultCurrency(), amount, Cause.source(this).build());
-		    				if(toggle.contains(p.getUniqueId())) {
-		    					return;
-		    				}
-		    				else {
-		    					p.sendMessage(Text.of(TextColors.GREEN, "[PixelMoney] You've gained $" + amount.setScale(2, BigDecimal.ROUND_HALF_DOWN) + " for kill a(n) " + poke.getPokemonName() + "!"));
-		    				}
 			    	}
 			    }
 			}

@@ -1,4 +1,4 @@
-package com.teits.pixelmoney.algorithms;
+/*package com.teits.pixelmoney.algorithms;
 
 
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
@@ -31,3 +31,4 @@ public class Level {
 	}
 
 }
+*/
