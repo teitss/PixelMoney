@@ -10,6 +10,7 @@ import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.serializer.TextSerializers;
 
 import com.teits.pixelmoney.PixelMoney;
 
@@ -22,11 +23,11 @@ public class ToggleExecutor implements CommandExecutor {
 			Player p = (Player) src;
 			if(PixelMoney.toggle.contains(p.getUniqueId())) {
 				PixelMoney.toggle.remove(p.getUniqueId());
-				p.sendMessage(Text.of(TextColors.GREEN, "[PixelMoney] You've turned on notifications"));
+				p.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(ReloadExecutor.instance.config.turnonlogmessage));
 			}
 			else {
 				PixelMoney.toggle.add(p.getUniqueId());
-				p.sendMessage(Text.of(TextColors.GREEN, "[PixelMoney] You've turned off notifications"));
+				p.sendMessage(Text.of(TextSerializers.FORMATTING_CODE.deserialize(ReloadExecutor.instance.config.turnofflogmessage)));
 			}
 		}
 		if(src instanceof ConsoleSource) {

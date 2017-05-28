@@ -23,7 +23,7 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.serializer.TextSerializers;
 
 import com.google.inject.Inject;
 import com.pixelmonmod.pixelmon.Pixelmon;
@@ -43,7 +43,7 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 public class PixelMoney {
 	
 	public static final String plName = "PixelMoney";
-	public static final String plVer = "1.0";
+	public static final String plVer = "1.1";
 	public static final String plAuthor = "Teits";
 	
 	@Inject
@@ -143,7 +143,9 @@ public class PixelMoney {
 		    			if(toggle.contains(p.getUniqueId())) {
 		    				return ;
 		    			}else{
-		    				p.sendMessage(Text.of(TextColors.GREEN, "[PixelMoney] You've gained $" + config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN) + " for killing a(n) " + poke.getPokemonName() + "!"));
+		    				p.sendMessages(TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
+		    						.replaceAll("%amount%", config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN).toString())
+		    						.replaceAll("%pokemon%", poke.getPokemonName())));
 		    			}
 			    	}
 			    }
