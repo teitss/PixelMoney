@@ -4,13 +4,11 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColor;
-import org.spongepowered.api.text.format.TextColors;
+import java.util.ArrayList;
 
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 
+import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
@@ -26,6 +24,8 @@ public class ConfigPM {
 	public String turnofflogmessage;
 	public String tagcolor;
 	public String tagtext;
+	public ConfigurationNode dconf;
+	public ArrayList<Integer> d = new ArrayList<>();
 	
 	public CommentedConfigurationNode configInit(ConfigurationLoader<CommentedConfigurationNode> cm, CommentedConfigurationNode cn) {
 		try {
@@ -54,14 +54,17 @@ public class ConfigPM {
 				.setValue("You've turned on notifications")
 				.setComment("You can use Ampersanding Formatting(&1&2)");
 			confignode.getNode("pixelmoney", "messages", "tag-color")
-			.setValue("WHITE")
-			.setComment("You can use AQUA, BLACK, BLUE, GOLD, GRAY, GREEN, RED, WHITE, YELLOW, LIGHT_PURPLE, DARK_AQUA, DARK_BLUE, DARK_GRAY, DARK_PURPLE, DARK_GREEN, DARK_RED");
+				.setValue("WHITE")
+				.setComment("You can use AQUA, BLACK, BLUE, GOLD, GRAY, GREEN, RED, WHITE, YELLOW, LIGHT_PURPLE, DARK_AQUA, DARK_BLUE, DARK_GRAY, DARK_PURPLE, DARK_GREEN, DARK_RED");
 			confignode.getNode("pixelmoney", "messages", "turnoff-message")
 				.setValue("You've turned off notifications")
 				.setComment("You can use Ampersanding Formatting(&1&2)");
 			confignode.getNode("pixelmoney", "messages", "reload-message")
 				.setValue("Config reloaded!")
 				.setComment("You can use Ampersanding Formatting(&1&2)");
+			confignode.getNode("pixelmoney", "dimensions")
+			.setValue(d)
+			.setComment("Dimensions where plugin will work [0, -1, 47]");
 			configManager.save(confignode);
 		}
 		catch (IOException ec){
@@ -79,6 +82,19 @@ public class ConfigPM {
 		reloadmessage = tagtext + cn.getNode("pixelmoney", "messages", "reload-message").getString();
 		turnonlogmessage = tagtext + cn.getNode("pixelmoney", "messages", "turnon-message").getString();
 		turnofflogmessage = tagtext + cn.getNode("pixelmoney", "messages", "turnoff-message").getString();
+		if(d.isEmpty() == false) {
+			d.clear();
+			for(ConfigurationNode dim : cn.getNode("pixelmoney", "dimensions").getChildrenList()) {
+				int dime = dim.getInt();
+				d.add(dime);
+			}
+		}
+		else {
+			for(ConfigurationNode dim : cn.getNode("pixelmoney", "dimensions").getChildrenList()) {
+				int dime = dim.getInt();
+				d.add(dime);
+			}
+		}
 	}
 	public BigDecimal setAmount(EntityPixelmon poke) {
 		if(levelbased==true) {

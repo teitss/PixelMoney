@@ -128,27 +128,29 @@ public class PixelMoney {
 	}
 	@SubscribeEvent
 	public void onBeat(BeatWildPixelmonEvent event) { 
-		Player p = (Player) event.player;
-		if(p.hasPermission("teits.pixelmoney")) {
-			Optional<UniqueAccount> uOpt = economyService.getOrCreateAccount(p.getUniqueId());
-			if (uOpt.isPresent()) {
-			    UniqueAccount acc = uOpt.get();
-			    for (PixelmonWrapper wrapper : event.wpp.controlledPokemon) {
-			    	poke = wrapper.pokemon;
-			    	config.setAmount(poke);
-			    	if(config.setAmount(poke)==null){
-			    		System.out.println("You have a problem in your config file");
-			    	}else{
-			    		acc.deposit(economyService.getDefaultCurrency(), config.amount, Cause.source(this).build());
-		    			if(toggle.contains(p.getUniqueId())) {
-		    				return ;
-		    			}else{
-		    				p.sendMessages(TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
-		    						.replaceAll("%amount%", config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN).toString())
-		    						.replaceAll("%pokemon%", poke.getPokemonName())));
-		    			}
-			    	}
-			    }
+		if(config.d.contains(event.player.dimension)) {
+			Player p = (Player) event.player;
+			if(p.hasPermission("teits.pixelmoney")) {
+				Optional<UniqueAccount> uOpt = economyService.getOrCreateAccount(p.getUniqueId());
+				if (uOpt.isPresent()) {
+				    UniqueAccount acc = uOpt.get();
+				    for (PixelmonWrapper wrapper : event.wpp.controlledPokemon) {
+				    	poke = wrapper.pokemon;
+				    	config.setAmount(poke);
+				    	if(config.setAmount(poke)==null){
+				    		System.out.println("You have a problem in your config file");
+				    	}else{
+				    		acc.deposit(economyService.getDefaultCurrency(), config.amount, Cause.source(this).build());
+			    			if(toggle.contains(p.getUniqueId())) {
+			    				return ;
+			    			}else{
+			    				p.sendMessages(TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
+			    						.replaceAll("%amount%", config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN).toString())
+			    						.replaceAll("%pokemon%", poke.getPokemonName())));
+			    			}
+				    	}
+				    }
+				}
 			}
 		}
 	}
