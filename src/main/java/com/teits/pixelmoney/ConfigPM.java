@@ -5,7 +5,12 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 
+import org.spongepowered.api.entity.living.player.Player;
+
+import com.google.common.base.CharMatcher;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 
 import ninja.leaping.configurate.ConfigurationNode;
@@ -14,9 +19,11 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 
 public class ConfigPM {
 	
-	public double money;
-	public boolean levelbased;
-	public String operationType;
+	public HashMap<Integer, Double> money = new HashMap<>();
+	public HashMap<Integer, Boolean> levelbased = new HashMap<>();
+	public HashMap<Integer, String> operationType = new HashMap<>();
+	public ArrayList<String> perms = new ArrayList<>();
+	public ArrayList<Integer> pw = new ArrayList<>();
 	public BigDecimal amount;
 	public String logmessage;
 	public String reloadmessage;
@@ -24,8 +31,10 @@ public class ConfigPM {
 	public String turnofflogmessage;
 	public String tagcolor;
 	public String tagtext;
-	public ConfigurationNode dconf;
 	public ArrayList<Integer> d = new ArrayList<>();
+	public int configver;
+	public int numberofgroups;
+	public ConfigurationNode dconf;
 	
 	public CommentedConfigurationNode configInit(ConfigurationLoader<CommentedConfigurationNode> cm, CommentedConfigurationNode cn) {
 		try {
@@ -36,34 +45,39 @@ public class ConfigPM {
 		}
 		return cn;
 	}
-	
+	public void checkVer(CommentedConfigurationNode cn) {
+		configver = cn.getNode("configVer").getInt();
+	}
 	public void configSetup(Path filePath, ConfigurationLoader<CommentedConfigurationNode> configManager, CommentedConfigurationNode confignode) {
 		try {
 			Files.createFile(filePath);
 			confignode = configManager.createEmptyNode();
-			confignode.getNode("pixelmoney", "money").setValue(10)
+			confignode.getNode("configVer").setValue(1).setComment("Don't change this!");
+			confignode.getNode("number-of-groups").setValue(1).setComment("If you want to add more groups, change this number");
+			confignode.getNode("group1", "money").setValue(10)
 				.setComment("Amount of money to be rewarded/Number to be used in levelbased's mathematical operations");
-			confignode.getNode("pixelmoney", "levelbased", "enabled").setValue(false)
+			confignode.getNode("group1", "weight").setValue(1).setComment("Weight is the main identifier of a group, set different weights for different groups");
+			confignode.getNode("group1", "levelbased", "enabled").setValue(false)
 				.setComment("Enable/Disable per pokemon's level reward");
-			confignode.getNode("pixelmoney", "levelbased", "operation-type").setValue("MULTIPLICATION")
+			confignode.getNode("group1", "levelbased", "operation-type").setValue("MULTIPLICATION")
 				.setComment("You can choose 'MULTIPLICATION', 'DIVISION', 'ADDITION' or 'SUBTRACTION'");
-			confignode.getNode("pixelmoney", "messages", "log-message")
+			confignode.getNode("messages", "log-message")
 				.setValue("You've gained $%amount%  for killing a(n) %pokemon%!")
 				.setComment("You can use Ampersanding Formatting(&1&n) and the placeholders %amount%, %pokemon%");
-			confignode.getNode("pixelmoney", "messages", "turnon-message")
+			confignode.getNode("messages", "turnon-message")
 				.setValue("You've turned on notifications")
 				.setComment("You can use Ampersanding Formatting(&1&2)");
-			confignode.getNode("pixelmoney", "messages", "tag-color")
+			confignode.getNode("messages", "tag-color")
 				.setValue("WHITE")
 				.setComment("You can use AQUA, BLACK, BLUE, GOLD, GRAY, GREEN, RED, WHITE, YELLOW, LIGHT_PURPLE, DARK_AQUA, DARK_BLUE, DARK_GRAY, DARK_PURPLE, DARK_GREEN, DARK_RED");
-			confignode.getNode("pixelmoney", "messages", "turnoff-message")
+			confignode.getNode("messages", "turnoff-message")
 				.setValue("You've turned off notifications")
 				.setComment("You can use Ampersanding Formatting(&1&2)");
-			confignode.getNode("pixelmoney", "messages", "reload-message")
+			confignode.getNode("messages", "reload-message")
 				.setValue("Config reloaded!")
 				.setComment("You can use Ampersanding Formatting(&1&2)");
-			confignode.getNode("pixelmoney", "dimensions")
-			.setValue(d)
+			confignode.getNode("dimensions")
+			.setValue(new ArrayList<Integer>())
 			.setComment("Dimensions where plugin will work [0, -1, 47]");
 			configManager.save(confignode);
 		}
@@ -73,42 +87,48 @@ public class ConfigPM {
 		
 	}
 	public void configLoad(CommentedConfigurationNode cn) {
-		tagcolor = cn.getNode("pixelmoney", "messages", "tag-color").getString();
+		numberofgroups = cn.getNode("number-of-groups").getInt();
+		tagcolor = cn.getNode("messages", "tag-color").getString();
 		tagtext = getTagColor(tagcolor) +  "[PixelMoney] ";
-		levelbased = cn.getNode("pixelmoney", "levelbased", "enabled").getBoolean();
-		operationType = cn.getNode("pixelmoney", "levelbased", "operation-type").getString();
-		money = cn.getNode("pixelmoney", "money").getInt();
-		logmessage = tagtext + cn.getNode("pixelmoney", "messages", "log-message").getString();
-		reloadmessage = tagtext + cn.getNode("pixelmoney", "messages", "reload-message").getString();
-		turnonlogmessage = tagtext + cn.getNode("pixelmoney", "messages", "turnon-message").getString();
-		turnofflogmessage = tagtext + cn.getNode("pixelmoney", "messages", "turnoff-message").getString();
+		logmessage = tagtext +cn.getNode("messages", "log-message").getString();
+		reloadmessage = tagtext + cn.getNode("messages", "reload-message").getString();
+		turnonlogmessage = tagtext + cn.getNode("messages", "turnon-message").getString();
+		turnofflogmessage = tagtext + cn.getNode("messages", "turnoff-message").getString();
 		if(d.isEmpty() == false) {
 			d.clear();
-			for(ConfigurationNode dim : cn.getNode("pixelmoney", "dimensions").getChildrenList()) {
+			for(ConfigurationNode dim : cn.getNode("dimensions").getChildrenList()) {
 				int dime = dim.getInt();
 				d.add(dime);
 			}
 		}
 		else {
-			for(ConfigurationNode dim : cn.getNode("pixelmoney", "dimensions").getChildrenList()) {
+			for(ConfigurationNode dim : cn.getNode("dimensions").getChildrenList()) {
 				int dime = dim.getInt();
 				d.add(dime);
+			}
+		}
+		if(numberofgroups != 0) {
+			for(int i = 1; i <= numberofgroups; i++) {
+				levelbased.put(Integer.valueOf(cn.getNode("group" + i, "weight").getInt()), Boolean.valueOf(cn.getNode("group" + i, "levelbased", "enabled").getBoolean()));
+				operationType.put(Integer.valueOf(cn.getNode("group" + i, "weight").getInt()), cn.getNode("group" + i, "levelbased", "operation-type").getString());
+				money.put(Integer.valueOf(cn.getNode("group" + i, "weight").getInt()), Double.valueOf(cn.getNode("group" + i, "money").getDouble()));
+				perms.add("teits.pixelmoney.weight." + cn.getNode("group" + i, "weight").getInt());
 			}
 		}
 	}
-	public BigDecimal setAmount(EntityPixelmon poke) {
-		if(levelbased==true) {
-			if(operationType.equals("MULTIPLICATION"))
-				return amount = new BigDecimal(poke.getLvl().getLevel() * money);
-			else if(operationType.equals("DIVISION"))
-				return amount = new BigDecimal(poke.getLvl().getLevel() / money);
-			else if(operationType.equals("ADDITION"))
-				return amount = new BigDecimal(poke.getLvl().getLevel() + money);
-			else if(operationType.equals("SUBTRACTION"))
-				return amount = new BigDecimal(poke.getLvl().getLevel() - money);
+	public BigDecimal setAmount(EntityPixelmon poke, Player p) {
+		if(levelbased.get(getWeight(p)).booleanValue() == true) {
+			if(operationType.get(getWeight(p)).equals("MULTIPLICATION"))
+				return amount = new BigDecimal(poke.getLvl().getLevel() * money.get(getWeight(p)).doubleValue());
+			else if(operationType.get(getWeight(p)).equals("DIVISION"))
+				return amount = new BigDecimal(poke.getLvl().getLevel() / money.get(getWeight(p)).doubleValue());
+			else if(operationType.get(getWeight(p)).equals("ADDITION"))
+				return amount = new BigDecimal(poke.getLvl().getLevel() + money.get(getWeight(p)).doubleValue());
+			else if(operationType.get(getWeight(p)).equals("SUBTRACTION"))
+				return amount = new BigDecimal(poke.getLvl().getLevel() - money.get(getWeight(p)).doubleValue());
 		}	
 		else {
-			return amount = new BigDecimal(money);
+			return amount = new BigDecimal(money.get(getWeight(p)).doubleValue());
 		}
 		return null;
 	}
@@ -147,5 +167,25 @@ public class ConfigPM {
 			return "&4";
 		else
 			return null;
+	}
+	public Integer getWeight(Player p) {
+		if(p.hasPermission("teits.pixelmoney.enable")) {
+			pw.clear();
+			for(int i = 0; i < perms.size(); i++) {
+				if(p.hasPermission(perms.get(i))) {
+					Integer w = Integer.valueOf(CharMatcher.DIGIT.retainFrom(perms.get(i)));
+					pw.add(w);
+				}	
+			}
+		return Collections.max(pw);
+		}
+			/*for(String perm : perms) {
+				if(p.hasPermission(perm)) {
+					int w = Integer.valueOf(CharMatcher.DIGIT.retainFrom(perm));
+					return Math.max(0, w);
+				}
+			}
+		}*/
+		return 1;
 	}
 }

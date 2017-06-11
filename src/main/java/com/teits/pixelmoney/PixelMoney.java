@@ -1,5 +1,6 @@
 package com.teits.pixelmoney;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -83,8 +84,25 @@ public class PixelMoney {
 		logger.info(plName + " " + plVer + " by " + plAuthor);
 		
 		if(Files.exists(filePath)) {
-			logger.info("Loading config file");
-			config.configLoad(config.configInit(configManager, configNode));
+			logger.info("Checking for config updates");
+			config.checkVer(config.configInit(configManager, configNode));
+			if(config.configver != 1) {
+				logger.info("An update has found");
+				try {
+					Files.delete(filePath);
+				}
+				catch(IOException ex) {
+					ex.printStackTrace();
+				}
+				logger.info("Updating now");
+				config.configSetup(filePath, configManager, configNode);
+				logger.info("Loading new config file");
+				config.configLoad(config.configInit(configManager, configNode));
+			}
+			else {
+				logger.info("Loading config file");
+				config.configLoad(config.configInit(configManager, configNode));
+			}
 		}
 		else {
 			logger.info("Creating config file");
@@ -98,17 +116,17 @@ public class PixelMoney {
 		logger.info("Registering commands");
 		
 		CommandSpec toggle = CommandSpec.builder()
-				.permission("teits.pixelmoney.toggle")
+				.permission("teits.pixelmoney.command.toggle")
 				.description(Text.of("Toggle the money log messages"))
 				.executor(new ToggleExecutor())
 				.build();
 		CommandSpec reload = CommandSpec.builder()
-				.permission("teits.pixelmoney.reload")
+				.permission("teits.pixelmoney.command.reload")
 				.description(Text.of("Reload PixelMoney's config"))
 				.executor(new ReloadExecutor())
 				.build();
 		CommandSpec main = CommandSpec.builder()
-				.permission("teits.pixelmoney")
+				.permission("teits.pixelmoney.command")
 				.description(Text.of("PixelMoney base command"))
 				.child(reload, "reload")
 				.child(toggle, "togglemsg")
@@ -130,23 +148,29 @@ public class PixelMoney {
 	public void onBeat(BeatWildPixelmonEvent event) { 
 		if(config.d.contains(event.player.dimension)) {
 			Player p = (Player) event.player;
-			if(p.hasPermission("teits.pixelmoney")) {
+			if(p.hasPermission("teits.pixelmoney.enable")) {
 				Optional<UniqueAccount> uOpt = economyService.getOrCreateAccount(p.getUniqueId());
 				if (uOpt.isPresent()) {
 				    UniqueAccount acc = uOpt.get();
 				    for (PixelmonWrapper wrapper : event.wpp.controlledPokemon) {
 				    	poke = wrapper.pokemon;
-				    	config.setAmount(poke);
-				    	if(config.setAmount(poke)==null){
+				    	config.setAmount(poke, p);
+				    	if(config.setAmount(poke, p)==null){
 				    		System.out.println("You have a problem in your config file");
 				    	}else{
 				    		acc.deposit(economyService.getDefaultCurrency(), config.amount, Cause.source(this).build());
 			    			if(toggle.contains(p.getUniqueId())) {
 			    				return ;
 			    			}else{
-			    				p.sendMessages(TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
+			    				/*p.sendMessages(TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
 			    						.replaceAll("%amount%", config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN).toString())
-			    						.replaceAll("%pokemon%", poke.getPokemonName())));
+			    						.replaceAll("%pokemon%", poke.getPokemonName())));*/
+			    				p.sendMessage(Text.of(config.amount));
+			    				p.sendMessage(Text.of(config.money));
+			    				p.sendMessage(Text.of(config.levelbased));
+			    				p.sendMessage(Text.of(config.operationType));
+			    				p.sendMessage(Text.of(config.perms));
+			    				p.sendMessage(Text.of(config.getWeight(p)));
 			    			}
 				    	}
 				    }
