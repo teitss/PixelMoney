@@ -44,7 +44,7 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 public class PixelMoney {
 	
 	public static final String plName = "PixelMoney";
-	public static final String plVer = "1.1";
+	public static final String plVer = "1.2";
 	public static final String plAuthor = "Teits";
 	
 	@Inject
@@ -162,15 +162,9 @@ public class PixelMoney {
 			    			if(toggle.contains(p.getUniqueId())) {
 			    				return ;
 			    			}else{
-			    				/*p.sendMessages(TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
+			    				p.sendMessages(TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
 			    						.replaceAll("%amount%", config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN).toString())
-			    						.replaceAll("%pokemon%", poke.getPokemonName())));*/
-			    				p.sendMessage(Text.of(config.amount));
-			    				p.sendMessage(Text.of(config.money));
-			    				p.sendMessage(Text.of(config.levelbased));
-			    				p.sendMessage(Text.of(config.operationType));
-			    				p.sendMessage(Text.of(config.perms));
-			    				p.sendMessage(Text.of(config.getWeight(p)));
+			    						.replaceAll("%pokemon%", poke.getPokemonName())));
 			    			}
 				    	}
 				    }
