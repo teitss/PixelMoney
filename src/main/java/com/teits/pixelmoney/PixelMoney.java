@@ -43,52 +43,51 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 
 @Plugin ( name = PixelMoney.plName, id = "pixelmoney", version = PixelMoney.plVer, authors = PixelMoney.plAuthor, dependencies = {@Dependency(id = "pixelmon")})
 public class PixelMoney {
-	
+
 	public static final String plName = "PixelMoney";
-	public static final String plVer = "2.0";
+	public static final String plVer = "2.0.0";
 	public static final String plAuthor = "Teits";
-	
+	public static final String plDesc = "Adds configurable money rewards for defeating Pokémon and NPC trainers.";
 	@Inject
 	Logger logger;
-	
+
 	@Inject
 	@DefaultConfig(sharedRoot = true)
 	public Path defaultConfig;
-	
+
 	@Inject
 	@DefaultConfig(sharedRoot = true)
 	private Path filePath = Paths.get(defaultConfig + "/pixelmoney.conf");
-	
+
 	@Inject
 	@DefaultConfig(sharedRoot = true)
 	private ConfigurationLoader<CommentedConfigurationNode> configManager = HoconConfigurationLoader.builder().setPath(filePath).build();
-    
+
 	private CommentedConfigurationNode configNode;
 	public static List<UUID> toggle = new ArrayList<>();
 	EconomyService economyService;
-	Pixelmon Pixelmon;
 	public EntityPixelmon poke;
 	public ConfigPM config = new ConfigPM();
-	public PixelMoney instance;
-	
+	public static PixelMoney instance;
+
 	public ConfigurationLoader<CommentedConfigurationNode> getConfigManager() {
 		return configManager;
 	}
 	public CommentedConfigurationNode getConfigNode() {
 		return configNode;
 	}
-	
+
 	@Listener
 	public void onServerStart(GameInitializationEvent e){
+		instance = this;
 		
-		ReloadExecutor.set(this);
 		logger.info(plName + " " + plVer + " by " + plAuthor);
-		
+
 		if(Files.exists(filePath)) {
 			logger.info("Checking for config updates");
 			config.checkVer(config.configInit(configManager, configNode));
 			if(config.configver == 1) {
-				logger.info("An update has found");
+				logger.info("An update was found");
 				/*try {
 					Files.delete(filePath);
 				}
@@ -111,11 +110,11 @@ public class PixelMoney {
 			logger.info("Loading config file");
 			config.configLoad(config.configInit(configManager, configNode));
 		}
-		
+
 		Pixelmon.EVENT_BUS.register(this);
-		
+
 		logger.info("Registering commands");
-		
+
 		CommandSpec toggle = CommandSpec.builder()
 				.permission("teits.pixelmoney.command.toggle")
 				.description(Text.of("Toggle the money log messages"))
@@ -132,18 +131,18 @@ public class PixelMoney {
 				.child(reload, "reload")
 				.child(toggle, "togglemsg")
 				.build();
-		
+
 		Sponge.getCommandManager().register(this, main, "pixelmoney", "pm");
-		
+
 		logger.info("Successfully initializated!");
 		logger.info("Thank you for using " + plName);
 	}
-	
+
 	@Listener
 	public void onChangeServiceProvider(ChangeServiceProviderEvent event) {
-	        if (event.getService().equals(EconomyService.class)) {
-	                economyService = (EconomyService) event.getNewProviderRegistration().getProvider();
-	        }
+		if (event.getService().equals(EconomyService.class)) {
+			economyService = (EconomyService) event.getNewProviderRegistration().getProvider();
+		}
 	}
 	@SubscribeEvent
 	public void defeatNPC(BeatTrainerEvent event) {
@@ -154,36 +153,36 @@ public class PixelMoney {
 				if(uOpt.isPresent()) {
 					UniqueAccount acc = uOpt.get();
 					if(event.trainer.getBossMode().equals(EnumBossMode.NotBoss)) {
-				    		config.setAmountNormalNPC(event.trainer, p);
-					    	if(config.setAmountNormalNPC(event.trainer, p)==null){
-					    		System.out.println("You have a problem in your config file");
-					    	}else{
-					    		acc.deposit(economyService.getDefaultCurrency(), config.amount, Cause.source(this).build());
-				    			if(toggle.contains(p.getUniqueId())) {
-				    				return ;
-				    			}else{
-				    					p.sendMessages(config.getChatType(config.chattype), TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
-					    						.replaceAll("%amount%", config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN).toString())
-					    						.replaceAll("%pokemon%", event.trainer.getName(event.trainer.getName()))));	
-				    			}
-					    	}
-				    }
+						config.setAmountNormalNPC(event.trainer, p);
+						if(config.setAmountNormalNPC(event.trainer, p)==null){
+							System.out.println("You have a problem in your config file");
+						}else{
+							acc.deposit(economyService.getDefaultCurrency(), config.amount, Cause.source(this).build());
+							if(toggle.contains(p.getUniqueId())) {
+								return ;
+							}else{
+								p.sendMessages(config.getChatType(config.chattype), TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
+										.replaceAll("%amount%", config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN).toString())
+										.replaceAll("%pokemon%", event.trainer.getName(event.trainer.getName()))));	
+							}
+						}
+					}
 					else {
-				    	config.setAmountBossNPC(event.trainer, p);
-				    	if(config.setAmountBossNPC(event.trainer, p)==null)
-					    	System.out.println("You have a problem in your config file");
-					    else {
-					    	acc.deposit(economyService.getDefaultCurrency(), config.amount, Cause.source(this).build());
-				    		if(toggle.contains(p.getUniqueId())) {
-				    			return ;
-				    		}
-				    		else {
-				    			p.sendMessages(config.getChatType(config.chattype), TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
-				    					.replaceAll("%amount%", config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN).toString())
-				    					.replaceAll("%pokemon%", event.trainer.getName(event.trainer.getName()))));
-				    		}
-					    }  		
-				    }
+						config.setAmountBossNPC(event.trainer, p);
+						if(config.setAmountBossNPC(event.trainer, p)==null)
+							System.out.println("You have a problem in your config file");
+						else {
+							acc.deposit(economyService.getDefaultCurrency(), config.amount, Cause.source(this).build());
+							if(toggle.contains(p.getUniqueId())) {
+								return ;
+							}
+							else {
+								p.sendMessages(config.getChatType(config.chattype), TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
+										.replaceAll("%amount%", config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN).toString())
+										.replaceAll("%pokemon%", event.trainer.getName(event.trainer.getName()))));
+							}
+						}
+					}
 				}
 			}
 		}
@@ -195,41 +194,41 @@ public class PixelMoney {
 			if(p.hasPermission("teits.pixelmoney.enable")) {
 				Optional<UniqueAccount> uOpt = economyService.getOrCreateAccount(p.getUniqueId());
 				if (uOpt.isPresent()) {
-				    UniqueAccount acc = uOpt.get();
-				    for (PixelmonWrapper wrapper : event.wpp.allPokemon) {
-				    	poke = wrapper.pokemon;
-				    	if(poke.isBossPokemon() == true) {
-				    		config.setAmountBossWild(poke, p);
-				    		if(config.setAmountBossWild(poke, p)==null)
-					    		System.out.println("You have a problem in your config file");
-					    	else {
-					    		acc.deposit(economyService.getDefaultCurrency(), config.amount, Cause.source(this).build());
-				    			if(toggle.contains(p.getUniqueId())) {
-				    				return ;
-				    			}else{
-				    				p.sendMessages(config.getChatType(config.chattype), TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
-				    						.replaceAll("%amount%", config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN).toString())
-				    						.replaceAll("%pokemon%", wrapper.getPokemonName())));
-				    			}
-					    	}
-					    		
-				    	}
-				    	else {
-				    		config.setAmountNormalWild(wrapper, p);
-					    	if(config.setAmountNormalWild(wrapper, p)==null){
-					    		System.out.println("You have a problem in your config file");
-					    	}else{
-					    		acc.deposit(economyService.getDefaultCurrency(), config.amount, Cause.source(this).build());
-				    			if(toggle.contains(p.getUniqueId())) {
-				    				return ;
-				    			}else{
-				    				p.sendMessages(config.getChatType(config.chattype), TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
-				    						.replaceAll("%amount%", config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN).toString())
-				    						.replaceAll("%pokemon%", wrapper.getPokemonName())));
-				    			}
-					    	}
-				    	}
-				    }
+					UniqueAccount acc = uOpt.get();
+					for (PixelmonWrapper wrapper : event.wpp.allPokemon) {
+						poke = wrapper.pokemon;
+						if(poke.isBossPokemon() == true) {
+							config.setAmountBossWild(poke, p);
+							if(config.setAmountBossWild(poke, p)==null)
+								System.out.println("You have a problem in your config file");
+							else {
+								acc.deposit(economyService.getDefaultCurrency(), config.amount, Cause.source(this).build());
+								if(toggle.contains(p.getUniqueId())) {
+									return ;
+								}else{
+									p.sendMessages(config.getChatType(config.chattype), TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
+											.replaceAll("%amount%", config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN).toString())
+											.replaceAll("%pokemon%", wrapper.getPokemonName())));
+								}
+							}
+
+						}
+						else {
+							config.setAmountNormalWild(wrapper, p);
+							if(config.setAmountNormalWild(wrapper, p)==null){
+								System.out.println("You have a problem in your config file");
+							}else{
+								acc.deposit(economyService.getDefaultCurrency(), config.amount, Cause.source(this).build());
+								if(toggle.contains(p.getUniqueId())) {
+									return ;
+								}else{
+									p.sendMessages(config.getChatType(config.chattype), TextSerializers.FORMATTING_CODE.deserialize(config.logmessage
+											.replaceAll("%amount%", config.amount.setScale(2, BigDecimal.ROUND_HALF_DOWN).toString())
+											.replaceAll("%pokemon%", wrapper.getPokemonName())));
+								}
+							}
+						}
+					}
 				}
 			}
 		}

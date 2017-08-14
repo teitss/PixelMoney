@@ -15,19 +15,17 @@ import org.spongepowered.api.text.serializer.TextSerializers;
 import com.teits.pixelmoney.PixelMoney;
 
 public class ToggleExecutor implements CommandExecutor {
-
-	
 	@Override
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 		if(src instanceof Player) {
 			Player p = (Player) src;
 			if(PixelMoney.toggle.contains(p.getUniqueId())) {
 				PixelMoney.toggle.remove(p.getUniqueId());
-				p.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(ReloadExecutor.instance.config.turnonlogmessage));
+				p.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(PixelMoney.instance.config.turnonlogmessage));
 			}
 			else {
 				PixelMoney.toggle.add(p.getUniqueId());
-				p.sendMessage(Text.of(TextSerializers.FORMATTING_CODE.deserialize(ReloadExecutor.instance.config.turnofflogmessage)));
+				p.sendMessage(Text.of(TextSerializers.FORMATTING_CODE.deserialize(PixelMoney.instance.config.turnofflogmessage)));
 			}
 		}
 		if(src instanceof ConsoleSource) {
