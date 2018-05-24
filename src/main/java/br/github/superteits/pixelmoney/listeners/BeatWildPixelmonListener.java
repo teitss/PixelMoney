@@ -1,7 +1,7 @@
 package br.github.superteits.pixelmoney.listeners;
 
 import br.github.superteits.pixelmoney.PixelMoney;
-import br.github.superteits.pixelmoney.Group;
+import br.github.superteits.pixelmoney.config.Group;
 import com.pixelmonmod.pixelmon.api.events.BeatWildPixelmonEvent;
 import com.pixelmonmod.pixelmon.battles.controller.participants.PixelmonWrapper;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;

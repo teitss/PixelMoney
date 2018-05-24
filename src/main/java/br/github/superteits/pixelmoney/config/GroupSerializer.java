@@ -1,6 +1,5 @@
 package br.github.superteits.pixelmoney.config;
 
-import br.github.superteits.pixelmoney.Group;
 import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -14,6 +13,7 @@ public class GroupSerializer implements TypeSerializer<Group>{
         int id = configurationNode.getNode("Id").getInt();
         double money = configurationNode.getNode("Reward").getDouble();
         boolean isLevelBased = configurationNode.getNode("Is level based").getBoolean();
+        boolean isCaptureRewardEnabled = configurationNode.getNode("Is capture reward enabled").getBoolean();
         String operationType = configurationNode.getNode("Operation type").getString();
         boolean isBossRewardEnable = configurationNode.getNode("Is boss reward enabled").getBoolean();
         double equalBossReward = configurationNode.getNode("Equal boss reward").getDouble();
@@ -23,11 +23,12 @@ public class GroupSerializer implements TypeSerializer<Group>{
         double ultimateBossReward = configurationNode.getNode("Ultimate boss reward").getDouble();
         boolean isNpcRewardEnabled = configurationNode.getNode("Is NPC reward enabled").getBoolean();
         String logMessage = configurationNode.getNode("Log message").getString();
+        String logMessage2 = configurationNode.getNode("Capture log message").getString();
         String turnoOnLogMessage = configurationNode.getNode("Turn on log message").getString();
         String turnOffLogMessage = configurationNode.getNode("Turn off log message").getString();
         String chatType = configurationNode.getNode("Chat type").getString();
-        return new Group(id, money, isLevelBased, operationType, isBossRewardEnable, equalBossReward, uncommonBossReward,
-                rareBossReward, legendaryBossReward, ultimateBossReward, isNpcRewardEnabled, logMessage,
+        return new Group(id, money, isLevelBased, isCaptureRewardEnabled, operationType, isBossRewardEnable, equalBossReward, uncommonBossReward,
+                rareBossReward, legendaryBossReward, ultimateBossReward, isNpcRewardEnabled, logMessage, logMessage2,
                 turnoOnLogMessage, turnOffLogMessage, chatType);
     }
 
@@ -42,6 +43,9 @@ public class GroupSerializer implements TypeSerializer<Group>{
         ((CommentedConfigurationNode) configurationNode).getNode("Is level based")
                 .setComment("Enable/Disable per pokemon's level reward.")
                 .setValue(group.isLevelBased());
+        ((CommentedConfigurationNode) configurationNode).getNode("Is capture reward enabled")
+                .setComment("Enable/Disable capture rewards.")
+                .setValue(group.isCaptureRewardEnabled());
         ((CommentedConfigurationNode) configurationNode).getNode("Operation type")
                 .setComment("You can choose 'MULTIPLICATION', 'DIVISION', 'ADDITION' or 'SUBTRACTION'.")
                 .setValue(group.getOperationType());
@@ -57,6 +61,9 @@ public class GroupSerializer implements TypeSerializer<Group>{
                 .setComment("Enable NPCs rewards.")
                 .setValue(group.isNpcRewardEnabled());
         ((CommentedConfigurationNode) configurationNode).getNode("Log message")
+                .setComment("You can use Ampersanding Formatting(&1&n) and the placeholders %amount%, %pokemon%.")
+                .setValue(group.getLogMessage());
+        ((CommentedConfigurationNode) configurationNode).getNode("Capture log message")
                 .setComment("You can use Ampersanding Formatting(&1&n) and the placeholders %amount%, %pokemon%.")
                 .setValue(group.getLogMessage());
         configurationNode.getNode("Turn on log message").setValue(group.getTurnoOnLogMessage());

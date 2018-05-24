@@ -1,9 +1,10 @@
 package br.github.superteits.pixelmoney.config;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 
-import br.github.superteits.pixelmoney.Group;
 import com.google.common.reflect.TypeToken;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.spongepowered.api.entity.living.player.Player;
@@ -18,7 +19,16 @@ public class Config {
 	private ArrayList<Group> groups = new ArrayList<>();
 	private ArrayList<Integer> enabledDimensions = new ArrayList<>();
 	private String reloadMessage;
-	public int configver;
+
+	public void initConfig(ConfigurationLoader<CommentedConfigurationNode> configManager, Path defaultConfig) {
+		if(Files.exists(defaultConfig)) {
+			loadConfig(configManager);
+		}
+		else {
+			setupConfig(configManager);
+			loadConfig(configManager);
+		}
+	}
 
 	public void loadConfig(ConfigurationLoader<CommentedConfigurationNode> configManager) {
 		try {
@@ -44,9 +54,10 @@ public class Config {
 	public void setupConfig(ConfigurationLoader<CommentedConfigurationNode> configManager) {
 		try {
 			CommentedConfigurationNode configNode = configManager.createEmptyNode();
-			groups.add(new Group(0, 10.0, false, "ADDITION", true,
+			groups.add(new Group(0, 10.0, false, false,"ADDITION", true,
 					10.0, 20.0, 30.0, 40.0,
 					50.0, true, "&a[Pixelmoney] &fYou gained &2$%amount% &ffor defeating &6%pokemon%!",
+					"&a[Pixelmoney] &fYou gained &2$%amount% &ffor capturing &6%pokemon%!",
 					"&a[Pixelmoney] You turned on notifications", "&a[Pixelmoney] You turned off notifications",
 					"ACTION_BAR"));
 			enabledDimensions.add(0);

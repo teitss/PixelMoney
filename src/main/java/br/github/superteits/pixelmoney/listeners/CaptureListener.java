@@ -1,9 +1,9 @@
 package br.github.superteits.pixelmoney.listeners;
 
-import br.github.superteits.pixelmoney.PixelMoney;
 import br.github.superteits.pixelmoney.config.Group;
-import com.pixelmonmod.pixelmon.api.events.BeatTrainerEvent;
-import com.pixelmonmod.pixelmon.enums.EnumBossMode;
+import br.github.superteits.pixelmoney.PixelMoney;
+import com.pixelmonmod.pixelmon.api.events.CaptureEvent;
+import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
@@ -15,32 +15,28 @@ import org.spongepowered.api.text.serializer.TextSerializers;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-public class BeatTrainerListener {
+public class CaptureListener {
 
     @SubscribeEvent
-    public void defeatNPC(BeatTrainerEvent event) {
-        if(PixelMoney.INSTANCE.getConfig().getEnabledDimensions().contains(event.player.dimension)) {
+    public void onSuccessfulCapture(CaptureEvent.SuccessfulCapture event) {
+        if (PixelMoney.INSTANCE.getConfig().getEnabledDimensions().contains(event.player.dimension)) {
             Player p = (Player) event.player;
-            if(p.hasPermission("pixelmoney.enable")) {
+            if (p.hasPermission("pixelmoney.enable")) {
                 Group group = PixelMoney.INSTANCE.getConfig().getGroups().get(PixelMoney.INSTANCE.getConfig().getGroupIndex(p));
-                if(group.isNpcRewardEnabled()) {
+                if (group.isCaptureRewardEnabled()) {
                     BigDecimal reward = BigDecimal.valueOf(0.0);
                     Optional<UniqueAccount> uOpt = PixelMoney.INSTANCE.getEconomyService().getOrCreateAccount(p.getUniqueId());
-                    if(uOpt.isPresent()) {
+                    if (uOpt.isPresent()) {
                         UniqueAccount acc = uOpt.get();
-                        if(event.trainer.getBossMode().equals(EnumBossMode.NotBoss)) {
-                            reward = group.getMoneyReward(event.trainer);
-                        }
-                        else {
-                            reward = group.getBossReward(event.trainer);
-                        }
+                        EntityPixelmon poke = event.getPokemon();
+                        reward = group.getMoneyReward(poke);
                         acc.deposit(PixelMoney.INSTANCE.getEconomyService().getDefaultCurrency(),
                                 reward,
                                 Cause.builder().append(PixelMoney.INSTANCE).build(EventContext.builder().add(EventContextKeys.PLUGIN, PixelMoney.INSTANCE.getPluginContainer()).build()));
-                        if(!PixelMoney.INSTANCE.getToggledPlayers().contains(p.getUniqueId())) {
-                            p.sendMessages(group.getChatType(), TextSerializers.FORMATTING_CODE.deserialize(group.getLogMessage()
+                        if (!PixelMoney.INSTANCE.getToggledPlayers().contains(p.getUniqueId())) {
+                            p.sendMessages(group.getChatType(), TextSerializers.FORMATTING_CODE.deserialize(group.getLogMessage2()
                                     .replaceAll("%amount%", reward.setScale(2, BigDecimal.ROUND_HALF_DOWN).toString())
-                                    .replaceAll("%pokemon%", event.trainer.getName(event.trainer.getName()))));
+                                    .replaceAll("%pokemon%", poke.getPokemonName())));
                         }
                     }
                 }
