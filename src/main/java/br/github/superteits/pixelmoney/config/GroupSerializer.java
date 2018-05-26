@@ -65,7 +65,7 @@ public class GroupSerializer implements TypeSerializer<Group>{
                 .setValue(group.getLogMessage());
         ((CommentedConfigurationNode) configurationNode).getNode("Capture log message")
                 .setComment("You can use Ampersanding Formatting(&1&n) and the placeholders %amount%, %pokemon%.")
-                .setValue(group.getLogMessage());
+                .setValue(group.getLogMessage2());
         configurationNode.getNode("Turn on log message").setValue(group.getTurnoOnLogMessage());
         configurationNode.getNode("Turn off log message").setValue(group.getTurnOffLogMessage());
         ((CommentedConfigurationNode) configurationNode).getNode("Chat type")

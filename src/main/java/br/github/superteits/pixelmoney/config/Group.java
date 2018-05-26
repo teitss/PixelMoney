@@ -168,12 +168,16 @@ public class Group {
             switch(getOperationType()) {
                 case "MULTIPLICATION":
                     reward = new BigDecimal(pixelmon.getLvl().getLevel() * getMoney());
+                    break;
                 case "DIVISION":
                     reward = new BigDecimal(pixelmon.getLvl().getLevel() / getMoney());
+                    break;
                 case "ADDITION":
                     reward = new BigDecimal(pixelmon.getLvl().getLevel() + getMoney());
+                    break;
                 case "SUBTRACTION":
                     reward = new BigDecimal(pixelmon.getLvl().getLevel() - getMoney());
+                    break;
                 default:
                     reward = new BigDecimal(pixelmon.getLvl().getLevel() + getMoney());
             }
@@ -190,12 +194,16 @@ public class Group {
             switch(getOperationType()) {
                 case "MULTIPLICATION":
                     reward = new BigDecimal(trainer.getLvl() * getMoney());
+                    break;
                 case "DIVISION":
                     reward = new BigDecimal(trainer.getLvl() / getMoney());
+                    break;
                 case "ADDITION":
                     reward = new BigDecimal(trainer.getLvl() + getMoney());
+                    break;
                 case "SUBTRACTION":
                     reward = new BigDecimal(trainer.getLvl() - getMoney());
+                    break;
                 default:
                     reward = new BigDecimal(trainer.getLvl() + getMoney());
             }
