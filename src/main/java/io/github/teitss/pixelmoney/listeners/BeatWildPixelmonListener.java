@@ -1,13 +1,16 @@
 package io.github.teitss.pixelmoney.listeners;
 
+import com.google.common.reflect.TypeToken;
 import com.pixelmonmod.pixelmon.api.events.BeatWildPixelmonEvent;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.battles.controller.participants.PixelmonWrapper;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
+
 import io.github.teitss.pixelmoney.PixelMoney;
 import io.github.teitss.pixelmoney.config.Config;
 import io.github.teitss.pixelmoney.config.Group;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
 import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
@@ -17,6 +20,7 @@ import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
 import javax.script.ScriptException;
+
 import java.math.BigDecimal;
 
 public class BeatWildPixelmonListener {
@@ -37,6 +41,9 @@ public class BeatWildPixelmonListener {
             if (!group.getDimensions().contains(event.player.dimension))
                 return;
 
+            if (group.getDisabledPokemons().contains(((EntityPixelmon)event.wpp.getEntity()).getSpecies().name))
+            	return;
+            
             String normalReward = group.getNormalPokemonDefeatReward();
             String bossReward = group.getBossPokemonDefeatReward();
 

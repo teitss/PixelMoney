@@ -31,9 +31,12 @@ public class CaptureListener {
                 return;
             }
 
-            if (group.getDimensions().contains(event.player.dimension))
+            if (!group.getDimensions().contains(event.player.dimension))
                 return;
 
+            if (group.getDisabledPokemons().contains(event.getPokemon().getSpecies().name))
+                return;
+            
             String captureReward = group.getCaptureReward();
 
             if (captureReward.isEmpty())

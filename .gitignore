@@ -2,6 +2,8 @@
 /bin/
 /.settings/
 /build/
+/libs/
 .classpath
 .project
 bin
+libs
