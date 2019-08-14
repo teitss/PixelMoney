@@ -24,7 +24,8 @@ public class GroupSerializer {
                 configurationNode.getNode("turnOffMessageLog").getString(),
                 configurationNode.getNode("enableRewardMultiplier").getBoolean(),
                 configurationNode.getNode("enableExtendedRewardMultiplier").getBoolean(),
-                configurationNode.getNode("disablePixelmonWinMoney").getBoolean()
+                configurationNode.getNode("disablePixelmonWinMoney").getBoolean(),
+                configurationNode.getNode("disabledPokemons").getList(TypeToken.of(String.class))
         ));
     }
 }

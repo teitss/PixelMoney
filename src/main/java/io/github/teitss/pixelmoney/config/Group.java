@@ -21,11 +21,13 @@ public class Group {
     private boolean rewardMultiplierEnabled;
     private boolean extendedMultiplierEnabled;
     private boolean pixelmonWinMoneyDisabled;
+    private List<String> disabledPokemons;
 
     public Group(String normalPokemonDefeatReward, String bossPokemonDefeatReward, String normalNPCDefeatReward,
                  String bossNPCDefeatReward, String captureReward, List<Integer> dimensions, String captureMessage,
                  String defeatMessage, String chatType, String turnOnMessageLog, String turnOffMessageLog,
-                 boolean rewardMultiplierEnabled, boolean extendedMultiplierEnabled, boolean pixelmonWinMoneyDisabled) {
+                 boolean rewardMultiplierEnabled, boolean extendedMultiplierEnabled, boolean pixelmonWinMoneyDisabled,
+                 List<String> disabledPokemons) {
         this.normalPokemonDefeatReward = normalPokemonDefeatReward;
         this.bossPokemonDefeatReward = bossPokemonDefeatReward;
         this.normalNPCDefeatReward = normalNPCDefeatReward;
@@ -40,6 +42,7 @@ public class Group {
         this.rewardMultiplierEnabled = rewardMultiplierEnabled;
         this.extendedMultiplierEnabled = extendedMultiplierEnabled;
         this.pixelmonWinMoneyDisabled = pixelmonWinMoneyDisabled;
+        this.disabledPokemons = disabledPokemons;
     }
 
     public String getNormalPokemonDefeatReward() {
@@ -94,6 +97,10 @@ public class Group {
         return pixelmonWinMoneyDisabled;
     }
 
+    public List<String> getDisabledPokemons() {
+        return disabledPokemons;
+    }
+    
     public ChatType getChatType() {
         switch (chatType) {
             case "SYSTEM":
